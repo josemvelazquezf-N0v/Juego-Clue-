@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proyecto Hélix — Sabotaje Corporativo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-bg:        #06090f;
+    --color-bg-deep:   #0a0f17;
+    --color-panel:     #0f1620;
+    --color-panel-2:   #141c28;
+    --color-line:      #1f2a3a;
+    --color-cyan:      #4fc3f7;
+    --color-cyan-soft: #80deea;
+    --color-cyan-dim:  #2a6b85;
+    --color-alert:     #ff4757;
+    --color-alert-dim: #7a1f28;
+    --color-amber:     #ffb74d;
+    --color-text:      #e3eaf2;
+    --color-text-dim:  #8595ad;
+    --color-text-mute: #4d5a70;
+    --font-display: 'Syne', sans-serif;
+    --font-body:    'Manrope', sans-serif;
+    --font-mono:    'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--color-bg);
+    color: var(--color-text);
+    min-height: 100vh;
+    position: relative;
+    line-height: 1.6;
+  }
+
+  /* Grid sutil de terminal forense */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79, 195, 247, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79, 195, 247, 0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Scanlines tenues */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 3px,
+      rgba(0, 0, 0, 0.12) 3px,
+      rgba(0, 0, 0, 0.12) 4px
+    );
+    pointer-events: none;
+    z-index: 2;
+    mix-blend-mode: multiply;
+  }
+
+  #app {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .screen {
+    display: none;
+    flex: 1;
+    padding: 2rem;
+    animation: fadeIn 0.6s ease-out;
+  }
+  .screen.active { display: flex; flex-direction: column; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+
+  @keyframes pulse-alert {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ========== PANTALLA TÍTULO ========== */
+  #screen-title {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 100vh;
+  }
+
+  .title-tag {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.3rem;
+    color: var(--color-alert);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .title-tag::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--color-alert);
+    border-radius: 50%;
+    animation: pulse-alert 1.4s infinite;
+  }
+
+  .game-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2.5rem, 8vw, 5.5rem);
+    color: var(--color-text);
+    line-height: 0.95;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.03em;
+  }
+
+  .game-title em {
+    font-style: normal;
+    color: var(--color-cyan);
+    position: relative;
+  }
+  .game-title em::after {
+    content: '_';
+    color: var(--color-cyan);
+    animation: blink 1s infinite;
+  }
+
+  .game-subtitle {
+    font-family: var(--font-mono);
+    font-size: clamp(0.85rem, 1.5vw, 1rem);
+    letter-spacing: 0.4rem;
+    color: var(--color-text-dim);
+    margin-bottom: 3rem;
+    text-transform: uppercase;
+  }
+
+  .title-intro {
+    max-width: 580px;
+    font-size: 1.05rem;
+    color: var(--color-text-dim);
+    margin-bottom: 3rem;
+    line-height: 1.8;
+  }
+
+  /* ========== BOTONES ========== */
+  .btn {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: 0.2rem;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    padding: 1rem 2.2rem;
+    background: transparent;
+    color: var(--color-cyan);
+    border: 1px solid var(--color-cyan-dim);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .btn::before {
+    content: '>';
+    color: var(--color-cyan);
+    font-weight: 700;
+  }
+
+  .btn:hover {
+    background: rgba(79, 195, 247, 0.08);
+    border-color: var(--color-cyan);
+    color: var(--color-cyan-soft);
+    box-shadow: 0 0 24px rgba(79, 195, 247, 0.15);
+  }
+
+  .btn-primary {
+    background: var(--color-cyan);
+    color: var(--color-bg);
+    border-color: var(--color-cyan);
+  }
+  .btn-primary::before {
+    color: var(--color-bg);
+  }
+  .btn-primary:hover {
+    background: var(--color-cyan-soft);
+    color: var(--color-bg);
+    box-shadow: 0 0 30px rgba(79, 195, 247, 0.35);
+  }
+
+  .btn-danger {
+    background: var(--color-alert);
+    color: var(--color-bg);
+    border-color: var(--color-alert);
+  }
+  .btn-danger::before { color: var(--color-bg); }
+  .btn-danger:hover {
+    background: #ff6b78;
+    box-shadow: 0 0 30px rgba(255, 71, 87, 0.35);
+  }
+
+  .btn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* ========== PANTALLA INTRO ========== */
+  #screen-intro {
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+  }
+
+  .intro-container {
+    max-width: 760px;
+    width: 100%;
+    background: var(--color-panel);
+    border: 1px solid var(--color-line);
+    padding: 0;
+    position: relative;
+  }
+
+  .intro-header {
+    background: var(--color-panel-2);
+    padding: 0.8rem 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.2rem;
+    color: var(--color-text-dim);
+    border-bottom: 1px solid var(--color-line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .intro-header-dots {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .intro-header-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-line);
+  }
+  .intro-header-dots span:first-child { background: var(--color-alert); }
+  .intro-header-dots span:nth-child(2) { background: var(--color-amber); }
+  .intro-header-dots span:nth-child(3) { background: var(--color-cyan); }
+
+  .intro-body {
+    padding: 2.5rem;
+  }
+
+  .intro-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.8rem;
+    color: var(--color-text);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  .intro-classification {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-alert);
+    letter-spacing: 0.3rem;
+    margin-bottom: 2rem;
+  }
+
+  .intro-text {
+    font-size: 1.05rem;
+    margin-bottom: 1.3rem;
+    color: var(--color-text);
+  }
+  .intro-text::before {
+    content: '// ';
+    color: var(--color-cyan-dim);
+    font-family: var(--font-mono);
+  }
+
+  .intro-actions {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed var(--color-line);
+  }
+
+  /* ========== PANTALLA JUEGO ========== */
+  #screen-game {
+    padding: 1.5rem;
+  }
+
+  .game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: var(--color-panel);
+    border: 1px solid var(--color-line);
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .header-title {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--color-text);
+    letter-spacing: 0.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .header-title::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background: var(--color-cyan);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--color-cyan);
+    animation: pulse-alert 2s infinite;
+  }
+
+  .header-stats {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--color-text-dim);
+    letter-spacing: 0.1rem;
+  }
+  .header-stats strong {
+    color: var(--color-cyan);
+    font-weight: 500;
+  }
+
+  .game-grid {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 1.5rem;
+    flex: 1;
+  }
+
+  @media (max-width: 980px) {
+    .game-grid { grid-template-columns: 1fr; }
+  }
+
+  .section-header {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-text-dim);
+    letter-spacing: 0.3rem;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .section-header::before {
+    content: '[';
+    color: var(--color-cyan);
+  }
+  .section-header::after {
+    content: ']';
+    color: var(--color-cyan);
+  }
+
+  .rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 1rem;
+  }
+
+  .room-card {
+    background: var(--color-panel);
+    border: 1px solid var(--color-line);
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .room-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--color-cyan-dim);
+    transition: background 0.25s ease;
+  }
+
+  .room-card:hover:not(.visited) {
+    background: var(--color-panel-2);
+    border-color: var(--color-cyan-dim);
+    transform: translateX(2px);
+  }
+  .room-card:hover:not(.visited)::before {
+    background: var(--color-cyan);
+  }
+
+  .room-card.visited {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .room-card.visited::before {
+    background: var(--color-text-mute);
+  }
+
+  .room-image {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    background: var(--color-bg-deep);
+    border: 1px dashed var(--color-line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--color-text-mute);
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 0.7rem;
+  }
+
+  .room-code {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--color-cyan);
+    letter-spacing: 0.1rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .room-name {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--color-text);
+  }
+
+  .room-status {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--color-text-mute);
+    margin-top: 0.4rem;
+    letter-spacing: 0.15rem;
+  }
+  .room-card.visited .room-status {
+    color: var(--color-cyan);
+  }
+
+  /* ========== EVIDENCIAS ========== */
+  .notebook-section {
+    background: var(--color-panel);
+    border: 1px solid var(--color-line);
+    padding: 0;
+    position: relative;
+    max-height: 75vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .notebook-header {
+    padding: 1rem 1.5rem;
+    background: var(--color-panel-2);
+    border-bottom: 1px solid var(--color-line);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-cyan);
+    letter-spacing: 0.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .notebook-header span {
+    color: var(--color-text-mute);
+  }
+
+  .notebook-body {
+    padding: 1rem 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .notebook-body::-webkit-scrollbar { width: 6px; }
+  .notebook-body::-webkit-scrollbar-track { background: var(--color-bg-deep); }
+  .notebook-body::-webkit-scrollbar-thumb { background: var(--color-cyan-dim); }
+
+  .clue-empty {
+    color: var(--color-text-mute);
+    text-align: center;
+    padding: 3rem 0;
+    font-size: 0.9rem;
+    font-family: var(--font-mono);
+  }
+  .clue-empty::before {
+    content: '> ';
+    color: var(--color-cyan);
+  }
+
+  .clue-item {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--color-line);
+    color: var(--color-text);
+    line-height: 1.65;
+    animation: fadeIn 0.4s ease-out;
+  }
+  .clue-item:last-child { border-bottom: none; }
+
+  .clue-room {
+    color: var(--color-cyan);
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2rem;
+  }
+  .clue-room::before { content: '[ '; color: var(--color-text-mute); }
+  .clue-room::after  { content: ' ]'; color: var(--color-text-mute); }
+
+  .notebook-footer {
+    padding: 1.2rem;
+    border-top: 1px solid var(--color-line);
+    text-align: center;
+    background: var(--color-panel-2);
+  }
+
+  /* ========== MODAL ========== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(6, 9, 15, 0.92);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 2rem;
+    backdrop-filter: blur(8px);
+  }
+  .modal-overlay.active { display: flex; animation: fadeIn 0.25s ease-out; }
+
+  .modal-content {
+    background: var(--color-panel);
+    border: 1px solid var(--color-cyan);
+    max-width: 520px;
+    width: 100%;
+    position: relative;
+    box-shadow: 0 0 60px rgba(79, 195, 247, 0.15);
+  }
+
+  .modal-header {
+    background: var(--color-panel-2);
+    padding: 0.9rem 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.3rem;
+    color: var(--color-cyan);
+    border-bottom: 1px solid var(--color-line);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .modal-header::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--color-cyan);
+    border-radius: 50%;
+    animation: pulse-alert 1.6s infinite;
+  }
+
+  .modal-body {
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .modal-clue-text {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    color: var(--color-text);
+    line-height: 1.7;
+    text-align: left;
+  }
+
+  /* ========== ACUSACIÓN ========== */
+  #screen-accuse {
+    padding: 2rem;
+  }
+
+  .accuse-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    color: var(--color-text);
+    text-align: center;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+  .accuse-title em {
+    font-style: normal;
+    color: var(--color-alert);
+  }
+
+  .accuse-subtitle {
+    text-align: center;
+    color: var(--color-text-dim);
+    margin-bottom: 3rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.15rem;
+  }
+
+  .accuse-sections {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 800px) {
+    .accuse-sections { grid-template-columns: 1fr; }
+  }
+
+  .accuse-column {
+    background: var(--color-panel);
+    border: 1px solid var(--color-line);
+    padding: 1.5rem;
+  }
+
+  .accuse-column h3 {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--color-cyan);
+    letter-spacing: 0.3rem;
+    margin-bottom: 1.2rem;
+    text-transform: uppercase;
+    text-align: center;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px dashed var(--color-line);
+  }
+
+  .accuse-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .accuse-option {
+    padding: 0.8rem;
+    background: var(--color-bg-deep);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-body);
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    text-align: left;
+    width: 100%;
+  }
+
+  .accuse-option:hover {
+    border-color: var(--color-cyan-dim);
+    background: var(--color-panel-2);
+  }
+
+  .accuse-option.selected {
+    border-color: var(--color-alert);
+    background: rgba(255, 71, 87, 0.08);
+    box-shadow: inset 3px 0 0 var(--color-alert);
+  }
+
+  .accuse-thumb {
+    width: 44px;
+    height: 44px;
+    background: var(--color-panel-2);
+    border: 1px solid var(--color-line);
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+  }
+
+  .accuse-name {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .accuse-profession {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--color-text-dim);
+    font-family: var(--font-mono);
+    margin-top: 0.2rem;
+    letter-spacing: 0.05rem;
+  }
+
+  .accuse-final {
+    text-align: center;
+    margin-top: 2.5rem;
+  }
+
+  /* ========== ENDING ========== */
+  #screen-ending {
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+  }
+
+  .ending-container {
+    max-width: 760px;
+    width: 100%;
+  }
+
+  .ending-verdict {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    text-align: center;
+  }
+  .ending-verdict.win  { color: var(--color-cyan); }
+  .ending-verdict.lose { color: var(--color-alert); }
+
+  .ending-subtitle {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.4rem;
+    color: var(--color-text-dim);
+    margin-bottom: 2.5rem;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .ending-solution {
+    background: var(--color-panel);
+    border: 1px solid var(--color-line);
+    margin-bottom: 2rem;
+  }
+
+  .ending-solution-header {
+    padding: 0.8rem 1.5rem;
+    background: var(--color-panel-2);
+    border-bottom: 1px solid var(--color-line);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-cyan);
+    letter-spacing: 0.3rem;
+    text-transform: uppercase;
+  }
+
+  .solution-trio {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    padding: 2rem 1.5rem;
+  }
+
+  .solution-card {
+    text-align: center;
+    min-width: 110px;
+  }
+
+  .solution-thumb {
+    width: 100px;
+    height: 100px;
+    background: var(--color-bg-deep);
+    border: 1px solid var(--color-cyan-dim);
+    background-size: cover;
+    background-position: center;
+    margin: 0 auto 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--color-text-mute);
+  }
+
+  .solution-tag {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--color-cyan);
+    letter-spacing: 0.2rem;
+    margin-bottom: 0.2rem;
+    text-transform: uppercase;
+  }
+
+  .solution-label {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-text);
+  }
+
+  .ending-narrative {
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--color-text);
+    margin-bottom: 2rem;
+    padding: 0;
+  }
+
+  .ending-narrative p {
+    margin-bottom: 1.2rem;
+    padding-left: 1.2rem;
+    border-left: 2px solid var(--color-cyan-dim);
+  }
+
+  .ending-narrative strong {
+    color: var(--color-cyan-soft);
+    font-weight: 600;
+  }
+
+  .ending-actions {
+    text-align: center;
+  }
+
+  /* ========== FOOTER ========== */
+  .footer-mark {
+    text-align: center;
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--color-text-mute);
+    letter-spacing: 0.3rem;
+  }
+
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============ PANTALLA 1: TÍTULO ============ -->
+  <section id="screen-title" class="screen active">
+    <div class="title-tag">CLASIFICACIÓN — CONFIDENCIAL</div>
+    <h1 class="game-title">Proyecto <em>Hélix</em></h1>
+    <p class="game-subtitle">Sabotaje // Espionaje // Una Sola Verdad</p>
+    <p class="title-intro">
+      23:47. La torre de TechCore Industries está sellada. El prototipo más valioso
+      de la compañía ha desaparecido a doce horas de su lanzamiento.<br><br>
+      <span style="color: var(--color-alert);">Cinco empleados siguen dentro del edificio. Uno de ellos es el saboteador.</span>
+    </p>
+    <button class="btn btn-primary" onclick="Game.startIntro()">Iniciar Investigación</button>
+    <div class="footer-mark" style="margin-top: 3rem;">TECHCORE_SEC // INTERNAL_USE_ONLY</div>
+  </section>
+
+  <!-- ============ PANTALLA 2: INTRO ============ -->
+  <section id="screen-intro" class="screen">
+    <div class="intro-container">
+      <div class="intro-header">
+        <div class="intro-header-dots">
+          <span></span><span></span><span></span>
+        </div>
+        <span>EXPEDIENTE — HÉLIX_001</span>
+      </div>
+      <div class="intro-body">
+        <div class="intro-classification">▌ NIVEL DE ACCESO: 5 — ULTRA-RESTRINGIDO</div>
+        <h2 class="intro-title">Informe de Sabotaje Corporativo</h2>
+        <p class="intro-text" id="intro-paragraph-1"></p>
+        <p class="intro-text" id="intro-paragraph-2"></p>
+        <p class="intro-text" id="intro-paragraph-3"></p>
+        <div class="intro-actions">
+          <button class="btn btn-primary" onclick="Game.startInvestigation()">Acceder al Sistema</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PANTALLA 3: JUEGO ============ -->
+  <section id="screen-game" class="screen">
+    <div class="game-header">
+      <div class="header-title">SISTEMA DE INVESTIGACIÓN ACTIVO</div>
+      <div class="header-stats">
+        UBICACIONES_ANALIZADAS: <strong><span id="rooms-counter">0</span> / 5</strong>
+      </div>
+    </div>
+
+    <div class="game-grid">
+      <div class="rooms-section">
+        <div class="section-header">Mapa del Edificio</div>
+        <div class="rooms-grid" id="rooms-grid"></div>
+      </div>
+
+      <div class="notebook-section">
+        <div class="notebook-header">
+          <span style="color: var(--color-cyan);">EVIDENCIAS_RECOLECTADAS</span>
+          <span id="clue-count">0 entradas</span>
+        </div>
+        <div class="notebook-body">
+          <ul id="clues-list" style="list-style: none;">
+            <li class="clue-empty">Sin evidencias. Acceda a una ubicación.</li>
+          </ul>
+        </div>
+        <div class="notebook-footer">
+          <button class="btn btn-danger" onclick="Game.openAccusation()">
+            Formalizar Acusación
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MODAL DE PISTA ============ -->
+  <div class="modal-overlay" id="clue-modal">
+    <div class="modal-content">
+      <div class="modal-header" id="modal-title">Evidencia recopilada</div>
+      <div class="modal-body">
+        <p class="modal-clue-text" id="modal-text"></p>
+        <button class="btn btn-primary" onclick="Game.closeModal()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PANTALLA 4: ACUSACIÓN ============ -->
+  <section id="screen-accuse" class="screen">
+    <h2 class="accuse-title">Acusación <em>Formal</em></h2>
+    <p class="accuse-subtitle">▌ Una sola oportunidad — Selecciona con precisión</p>
+
+    <div class="accuse-sections">
+      <div class="accuse-column">
+        <h3>Sospechoso</h3>
+        <div class="accuse-options" id="accuse-suspects"></div>
+      </div>
+
+      <div class="accuse-column">
+        <h3>Herramienta</h3>
+        <div class="accuse-options" id="accuse-weapons"></div>
+      </div>
+
+      <div class="accuse-column">
+        <h3>Ubicación</h3>
+        <div class="accuse-options" id="accuse-rooms"></div>
+      </div>
+    </div>
+
+    <div class="accuse-final">
+      <button class="btn btn-danger" id="btn-submit-accusation" onclick="Game.submitAccusation()" disabled>
+        Confirmar Acusación
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ PANTALLA 5: FINAL ============ -->
+  <section id="screen-ending" class="screen">
+    <div class="ending-container">
+      <h2 class="ending-verdict" id="ending-verdict"></h2>
+      <p class="ending-subtitle" id="ending-subtitle"></p>
+
+      <div class="ending-solution">
+        <div class="ending-solution-header">▌ INFORME FINAL — RESOLUCIÓN DEL CASO</div>
+        <div class="solution-trio">
+          <div class="solution-card">
+            <div class="solution-thumb" id="sol-suspect-img">SUSPECT</div>
+            <div class="solution-tag">SABOTEADOR</div>
+            <div class="solution-label" id="sol-suspect-name"></div>
+          </div>
+          <div class="solution-card">
+            <div class="solution-thumb" id="sol-weapon-img">TOOL</div>
+            <div class="solution-tag">HERRAMIENTA</div>
+            <div class="solution-label" id="sol-weapon-name"></div>
+          </div>
+          <div class="solution-card">
+            <div class="solution-thumb" id="sol-room-img">LOC</div>
+            <div class="solution-tag">UBICACIÓN</div>
+            <div class="solution-label" id="sol-room-name"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ending-narrative" id="ending-narrative"></div>
+
+      <div class="ending-actions">
+        <button class="btn btn-primary" onclick="Game.restart()">Iniciar Nuevo Caso</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+// ============================================================
+//   DATOS DEL JUEGO
+// ============================================================
+
+const SUSPECTS = [
+  {
+    id: 'ceo',
+    name: 'Marcus Reed',
+    profession: 'Director Ejecutivo',
+    image: 'img/suspects/ceo.png',
+    motive: 'El prototipo había sido sobrevalorado ante los inversores. El lanzamiento revelaría números insostenibles y la compañía colapsaría. Reed pretendía simular un robo para retrasar el lanzamiento y cobrar el seguro corporativo.',
+    ending: `Marcus Reed estaba en su oficina cuando lo confrontaste, mirando los gráficos del trimestre con una calma extraña. "El lanzamiento de mañana habría enterrado la compañía", dijo sin levantar la vista. "Los números no cuadran. Nunca cuadraron." Dejó deslizar el dispositivo sobre el escritorio. "Mejor un sabotaje que una quiebra. Mejor un villano que un perdedor."`
+  },
+  {
+    id: 'ingeniero',
+    name: 'Dra. Sofía Aranza',
+    profession: 'Ingeniera Principal',
+    image: 'img/suspects/ingeniero.png',
+    motive: 'Diseñó cada componente de Hélix durante diez años. Descubrió que la patente sería registrada exclusivamente a nombre de la corporación, y que su contrato sería rescindido tras el lanzamiento. Decidió llevarse lo que era suyo.',
+    ending: `La Dra. Aranza no negó nada. Encendió un cigarrillo en la zona de fumadores y dejó el prototipo sobre la mesa metálica. "Diez años. Ochenta horas por semana. Tres patentes a su nombre que firmé yo." Soltó una bocanada de humo hacia el techo. "Iban a despedirme la semana entrante. Solo me adelanté a recoger lo que construí con mis propias manos."`
+  },
+  {
+    id: 'pasante',
+    name: 'Daniel Vega',
+    profession: 'Pasante',
+    image: 'img/suspects/pasante.png',
+    motive: 'No era realmente un pasante. Había sido implantado por una agencia de espionaje industrial seis meses atrás. Su rol invisible le permitió moverse por todo el edificio sin levantar sospechas.',
+    ending: `Daniel se quitó las gafas y, por primera vez, sonrió sin nervios. La timidez del pasante se evaporó. "Servirle café a tu jefe te vuelve invisible", dijo, perfectamente tranquilo. "Seis meses de invisibilidad. Eso es todo lo que necesité." Te entregó el prototipo con una formalidad casi educada. "Dile a tu Director Ejecutivo que la próxima vez verifique las referencias de sus pasantes."`
+  },
+  {
+    id: 'inversor',
+    name: 'Viktor Drakos',
+    profession: 'Inversor Rival',
+    image: 'img/suspects/inversor.png',
+    motive: 'Su propia compañía está al borde de la bancarrota. El lanzamiento de Hélix la sepultaría definitivamente. Sobornó a un guardia para acceder al edificio durante una reunión "informal".',
+    ending: `Drakos te recibió en la cafetería con una taza de espresso y la sonrisa de alguien que ya ganó. "Los negocios son una guerra, amigo mío", dijo, ajustándose los gemelos. "Y tu CEO ni siquiera revisó el registro de visitantes esta noche." Empujó el prototipo hacia ti sin ningún drama. "Quédatelo. Ya tomé las fotografías que necesitaba. Para mañana, mis ingenieros ya tendrán los esquemas."`
+  },
+  {
+    id: 'seguridad',
+    name: 'Helena Cross',
+    profession: 'Jefa de Seguridad',
+    image: 'img/suspects/seguridad.png',
+    motive: 'Quince años protegiendo los secretos de TechCore. Hace tres meses descubrió que la empresa había desfalcado el fondo de pensiones de los empleados antiguos. Una última operación antes de retirarse.',
+    ending: `Helena Cross te esperaba en su puesto, con el uniforme impecable y la placa sobre el escritorio. "Quince años, detective. Quince años conociendo cada ángulo muerto de este edificio." Te entregó el prototipo y el llavero maestro con la misma serenidad. "Hasta que leí el nuevo contrato de pensiones. Me enseñaron lo que vale la lealtad." Una pausa. "Mi reemplazo llega el lunes. Cuídese."`
+  }
+];
+
+const WEAPONS = [
+  { id: 'usb',        name: 'USB no rastreable',        image: 'img/weapons/usb.png' },
+  { id: 'clonador',   name: 'Clonador de tarjetas',     image: 'img/weapons/clonador.png' },
+  { id: 'malware',    name: 'Malware en portátil',      image: 'img/weapons/malware.png' },
+  { id: 'microfono',  name: 'Micrófono direccional',    image: 'img/weapons/microfono.png' },
+  { id: 'codigo',     name: 'Código fuente impreso',    image: 'img/weapons/codigo.png' }
+];
+
+const ROOMS = [
+  { id: 'servidores',  code: 'LOC-01', name: 'Sala de Servidores',   image: 'img/rooms/servidores.png' },
+  { id: 'oficina',     code: 'LOC-02', name: 'Oficina del CEO',       image: 'img/rooms/oficina.png' },
+  { id: 'laboratorio', code: 'LOC-03', name: 'Laboratorio de I+D',    image: 'img/rooms/laboratorio.png' },
+  { id: 'cafeteria',   code: 'LOC-04', name: 'Cafetería',             image: 'img/rooms/cafeteria.png' },
+  { id: 'archivo',     code: 'LOC-05', name: 'Archivo de Documentos', image: 'img/rooms/archivo.png' }
+];
+
+// ============================================================
+//   PLANTILLAS DE PISTAS
+// ============================================================
+
+const ALIBI_TEMPLATES = [
+  (s, r) => `Los registros de acceso confirman que ${s} permaneció en ${r} durante toda la ventana del incidente. Descartado/a.`,
+  (s, r) => `Las cámaras de ${r} muestran a ${s} sin moverse a la hora del sabotaje. Coartada verificada.`,
+  (s, r) => `La huella biométrica de ${s} aparece registrada continuamente en ${r}. No pudo ser él/ella.`,
+  (s, r) => `Un análisis de red sitúa el portátil de ${s} conectado desde ${r} durante el robo.`,
+  (s, r) => `El timbre de la tarjeta de ${s} fue marcado tres veces consecutivas en ${r}. Coartada sólida.`
+];
+
+const WEAPON_CLEAN_TEMPLATES = [
+  (w, r) => `Encuentras ${w} archivado en ${r}, con todos sus precintos intactos. No fue usado.`,
+  (w, r) => `Análisis forense de ${w} en ${r}: sin actividad reciente. Descartado.`,
+  (w, r) => `${w} aparece en el inventario de ${r}, sin abrir desde hace semanas.`,
+  (w, r) => `Los registros indican que ${w} estuvo siempre en ${r}, bajo vigilancia. Inocente.`
+];
+
+const CRIME_ROOM_TEMPLATES = [
+  (r) => `▌ ALERTA: ${r} muestra señales claras de acceso no autorizado. Esta es la zona de extracción del prototipo.`,
+  (r) => `Logs corruptos, sensores desactivados, marcas de manipulación: el sabotaje se ejecutó en ${r}.`,
+  (r) => `Los registros de seguridad de ${r} fueron borrados manualmente. Sin duda, este es el punto cero del robo.`
+];
+
+// ============================================================
+//   ESTADO DEL JUEGO
+// ============================================================
+
+const Game = {
+  state: null,
+
+  init() {
+    this.renderTitleScreen();
+  },
+
+  newGameState() {
+    const culprit = pickRandom(SUSPECTS);
+    const weapon  = pickRandom(WEAPONS);
+    const room    = pickRandom(ROOMS);
+
+    const innocentSuspects = SUSPECTS.filter(s => s.id !== culprit.id);
+    const innocentWeapons  = WEAPONS.filter(w => w.id !== weapon.id);
+    shuffle(innocentSuspects);
+    shuffle(innocentWeapons);
+
+    const nonCrimeRooms = ROOMS.filter(r => r.id !== room.id);
+    const cluesByRoom = {};
+
+    // Ubicación del sabotaje
+    cluesByRoom[room.id] = [
+      pickRandom(CRIME_ROOM_TEMPLATES)(room.name)
+    ];
+
+    // El resto de ubicaciones reparten coartadas y herramientas descartadas
+    nonCrimeRooms.forEach((r, i) => {
+      const innocentSuspect = innocentSuspects[i];
+      const innocentWeapon  = innocentWeapons[i];
+      cluesByRoom[r.id] = [
+        pickRandom(ALIBI_TEMPLATES)(innocentSuspect.name, r.name),
+        pickRandom(WEAPON_CLEAN_TEMPLATES)(innocentWeapon.name, r.name)
+      ];
+    });
+
+    return {
+      solution: { suspect: culprit, weapon: weapon, room: room },
+      cluesByRoom: cluesByRoom,
+      visitedRooms: new Set(),
+      discoveredClues: [],
+      accusation: { suspect: null, weapon: null, room: null }
+    };
+  },
+
+  showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  },
+
+  renderTitleScreen() {
+    this.showScreen('screen-title');
+  },
+
+  startIntro() {
+    this.state = this.newGameState();
+    document.getElementById('intro-paragraph-1').innerHTML =
+      `23:47 — Las alarmas del Laboratorio de I+D de <strong style="color:var(--color-cyan)">TechCore Industries</strong> se han disparado. El prototipo del <strong style="color:var(--color-cyan)">Proyecto Hélix</strong>, valorado en 800 millones de dólares y central para el lanzamiento de mañana, ha desaparecido.`;
+    document.getElementById('intro-paragraph-2').innerHTML =
+      `El protocolo de bloqueo se activó automáticamente: el perímetro está sellado, los ascensores desconectados, las salidas selladas. Solo cinco personas seguían dentro cuando ocurrió. Uno de ellos es el saboteador.`;
+    document.getElementById('intro-paragraph-3').innerHTML =
+      `<em style="color:var(--color-amber)">Tienes acceso a los registros, cámaras y análisis forenses de cada zona. Reúne las evidencias y formula la acusación antes del amanecer.</em>`;
+    this.showScreen('screen-intro');
+  },
+
+  startInvestigation() {
+    this.renderRooms();
+    this.renderClues();
+    this.showScreen('screen-game');
+  },
+
+  renderRooms() {
+    const grid = document.getElementById('rooms-grid');
+    grid.innerHTML = '';
+    ROOMS.forEach(room => {
+      const visited = this.state.visitedRooms.has(room.id);
+      const card = document.createElement('div');
+      card.className = 'room-card' + (visited ? ' visited' : '');
+      card.innerHTML = `
+        <div class="room-image" style="background-image:url('${room.image}')">
+          ${visited ? '' : '[ sin imagen ]'}
+        </div>
+        <div class="room-code">${room.code}</div>
+        <div class="room-name">${room.name}</div>
+        <div class="room-status">${visited ? '◉ ANALIZADO' : '○ PENDIENTE'}</div>
+      `;
+      if (!visited) {
+        card.onclick = () => this.investigateRoom(room.id);
+      }
+      grid.appendChild(card);
+    });
+    document.getElementById('rooms-counter').textContent = this.state.visitedRooms.size;
+  },
+
+  renderClues() {
+    const list = document.getElementById('clues-list');
+    const count = this.state.discoveredClues.length;
+    document.getElementById('clue-count').textContent = `${count} ${count === 1 ? 'entrada' : 'entradas'}`;
+
+    if (count === 0) {
+      list.innerHTML = '<li class="clue-empty">Sin evidencias. Acceda a una ubicación.</li>';
+      return;
+    }
+    list.innerHTML = '';
+    this.state.discoveredClues.forEach(clue => {
+      const li = document.createElement('li');
+      li.className = 'clue-item';
+      li.innerHTML = `<span class="clue-room">${clue.room}</span>${clue.text}`;
+      list.appendChild(li);
+    });
+  },
+
+  investigateRoom(roomId) {
+    if (this.state.visitedRooms.has(roomId)) return;
+    this.state.visitedRooms.add(roomId);
+    const room = ROOMS.find(r => r.id === roomId);
+    const clues = this.state.cluesByRoom[roomId];
+
+    clues.forEach(text => {
+      this.state.discoveredClues.push({ room: room.name, text: text });
+    });
+
+    document.getElementById('modal-title').textContent = `Acceso a ${room.name}`;
+    document.getElementById('modal-text').innerHTML = clues.join('<br><br>');
+    document.getElementById('clue-modal').classList.add('active');
+
+    this.renderRooms();
+    this.renderClues();
+  },
+
+  closeModal() {
+    document.getElementById('clue-modal').classList.remove('active');
+  },
+
+  openAccusation() {
+    this.renderAccusationLists();
+    this.showScreen('screen-accuse');
+  },
+
+  renderAccusationLists() {
+    const s = document.getElementById('accuse-suspects');
+    s.innerHTML = '';
+    SUSPECTS.forEach(suspect => {
+      const btn = document.createElement('button');
+      btn.className = 'accuse-option';
+      btn.innerHTML = `
+        <div class="accuse-thumb" style="background-image:url('${suspect.image}')"></div>
+        <div>
+          <span class="accuse-name">${suspect.name}</span>
+          <span class="accuse-profession">${suspect.profession}</span>
+        </div>`;
+      btn.onclick = () => this.selectAccusation('suspect', suspect, btn);
+      s.appendChild(btn);
+    });
+
+    const w = document.getElementById('accuse-weapons');
+    w.innerHTML = '';
+    WEAPONS.forEach(weapon => {
+      const btn = document.createElement('button');
+      btn.className = 'accuse-option';
+      btn.innerHTML = `
+        <div class="accuse-thumb" style="background-image:url('${weapon.image}')"></div>
+        <span class="accuse-name">${weapon.name}</span>`;
+      btn.onclick = () => this.selectAccusation('weapon', weapon, btn);
+      w.appendChild(btn);
+    });
+
+    const r = document.getElementById('accuse-rooms');
+    r.innerHTML = '';
+    ROOMS.forEach(room => {
+      const btn = document.createElement('button');
+      btn.className = 'accuse-option';
+      btn.innerHTML = `
+        <div class="accuse-thumb" style="background-image:url('${room.image}')"></div>
+        <div>
+          <span class="accuse-name">${room.name}</span>
+          <span class="accuse-profession">${room.code}</span>
+        </div>`;
+      btn.onclick = () => this.selectAccusation('room', room, btn);
+      r.appendChild(btn);
+    });
+
+    this.state.accusation = { suspect: null, weapon: null, room: null };
+    this.updateSubmitButton();
+  },
+
+  selectAccusation(category, item, btnEl) {
+    this.state.accusation[category] = item;
+    btnEl.parentElement.querySelectorAll('.accuse-option').forEach(b => b.classList.remove('selected'));
+    btnEl.classList.add('selected');
+    this.updateSubmitButton();
+  },
+
+  updateSubmitButton() {
+    const a = this.state.accusation;
+    document.getElementById('btn-submit-accusation').disabled =
+      !(a.suspect && a.weapon && a.room);
+  },
+
+  submitAccusation() {
+    const a = this.state.accusation;
+    const sol = this.state.solution;
+    const correct = a.suspect.id === sol.suspect.id
+                 && a.weapon.id  === sol.weapon.id
+                 && a.room.id    === sol.room.id;
+
+    const verdictEl = document.getElementById('ending-verdict');
+    const subtitleEl = document.getElementById('ending-subtitle');
+    verdictEl.classList.remove('win', 'lose');
+
+    if (correct) {
+      verdictEl.textContent = 'CASO RESUELTO';
+      verdictEl.classList.add('win');
+      subtitleEl.textContent = '▌ Prototipo recuperado — Saboteador identificado';
+    } else {
+      verdictEl.textContent = 'ACUSACIÓN ERRÓNEA';
+      verdictEl.classList.add('lose');
+      subtitleEl.textContent = '▌ El saboteador escapó con el prototipo';
+    }
+
+    document.getElementById('sol-suspect-name').textContent = sol.suspect.name;
+    document.getElementById('sol-weapon-name').textContent  = sol.weapon.name;
+    document.getElementById('sol-room-name').textContent    = sol.room.name;
+
+    setBgImage('sol-suspect-img', sol.suspect.image);
+    setBgImage('sol-weapon-img',  sol.weapon.image);
+    setBgImage('sol-room-img',    sol.room.image);
+
+    const narrative = document.getElementById('ending-narrative');
+    if (correct) {
+      narrative.innerHTML = `
+        <p>${sol.suspect.ending}</p>
+        <p><strong>Motivo:</strong> ${sol.suspect.motive}</p>
+        <p>El sabotaje se ejecutó en <strong>${sol.room.name}</strong>, usando <strong>${sol.weapon.name}</strong>. El prototipo de Hélix vuelve al laboratorio. El lanzamiento sigue en pie.</p>
+      `;
+    } else {
+      narrative.innerHTML = `
+        <p>Tu acusación contra <strong>${a.suspect.name}</strong> se desmorona ante la junta directiva. Falta de pruebas. Filtración a la prensa. Demanda por difamación.</p>
+        <p>Cuando los registros internos se descifran horas después, la verdad emerge: fue <strong>${sol.suspect.name}</strong> quien extrajo el prototipo desde <strong>${sol.room.name}</strong>, usando <strong>${sol.weapon.name}</strong>.</p>
+        <p><em>${sol.suspect.ending}</em></p>
+      `;
+    }
+
+    this.showScreen('screen-ending');
+  },
+
+  restart() {
+    this.state = null;
+    this.renderTitleScreen();
+  }
+};
+
+// ============================================================
+//   UTILIDADES
+// ============================================================
+
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function setBgImage(elId, url) {
+  const el = document.getElementById(elId);
+  el.style.backgroundImage = `url('${url}')`;
+}
+
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => Game.init());
+</script>
+
+</body>
+</html>
